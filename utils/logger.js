@@ -10,7 +10,6 @@ class Logger {
 
   createWinstonLogger() {
     const logDir = path.join(__dirname, '..', 'logs');
-    
     return winston.createLogger({
       level: process.env.LOG_LEVEL || 'info',
       format: winston.format.combine(
@@ -20,22 +19,9 @@ class Logger {
       ),
       defaultMeta: { component: this.component },
       transports: [
-        new winston.transports.File({ 
-          filename: path.join(logDir, 'combined.log'),
-          maxsize: 5242880,
-          maxFiles: 5,
-        }),
-        new winston.transports.File({ 
-          filename: path.join(logDir, 'error.log'),
-          level: 'error',
-          maxsize: 5242880,
-          maxFiles: 3,
-        }),
-        new winston.transports.File({
-          filename: path.join(logDir, `${this.component.toLowerCase()}.log`),
-          maxsize: 2097152,
-          maxFiles: 3,
-        })
+        new winston.transports.File({ filename: path.join(logDir, 'combined.log'), maxsize: 5242880, maxFiles: 5 }),
+        new winston.transports.File({ filename: path.join(logDir, 'error.log'), level: 'error', maxsize: 5242880, maxFiles: 3 }),
+        new winston.transports.File({ filename: path.join(logDir, `${this.component.toLowerCase()}.log`), maxsize: 2097152, maxFiles: 3 })
       ]
     });
   }
@@ -61,7 +47,6 @@ class Logger {
       console.log(this.formatConsoleMessage('ERROR', `${message} ${error.message}`, chalk.red));
       return;
     }
-
     this.winston.error(message, ...args);
     console.log(this.formatConsoleMessage('ERROR', message, chalk.red));
   }
@@ -80,74 +65,34 @@ class Logger {
     return `${chalk.gray(timestamp)} ${componentTag} ${levelTag} ${message}`;
   }
 
-  static createAgentLogger(agentName) {
-    return new Logger(agentName);
-  }
-
-  static createSystemLogger() {
-    return new Logger('System');
-  }
-
-  static createAPILogger() {
-    return new Logger('API');
-  }
+  static createAgentLogger(agentName) { return new Logger(agentName); }
+  static createSystemLogger() { return new Logger('System'); }
+  static createAPILogger() { return new Logger('API'); }
 
   startTimer(label) {
     const startTime = Date.now();
-    return {
-      end: () => {
-        const duration = Date.now() - startTime;
-        this.info(`${label} completed in ${duration}ms`);
-        return duration;
-      }
-    };
+    return { end: () => { const duration = Date.now() - startTime; this.info(`${label} completed in ${duration}ms`); return duration; } };
   }
 
   logEvent(eventType, data = {}) {
-    this.winston.info('System Event', {
-      eventType,
-      timestamp: new Date().toISOString(),
-      ...data
-    });
+    this.winston.info('System Event', { eventType, timestamp: new Date().toISOString(), ...data });
   }
 
   logContentPipeline(stage, contentId, status, data = {}) {
-    this.winston.info('Content Pipeline', {
-      stage,
-      contentId,
-      status,
-      timestamp: new Date().toISOString(),
-      ...data
-    });
+    this.winston.info('Content Pipeline', { stage, contentId, status, timestamp: new Date().toISOString(), ...data });
   }
 
   logPublishing(action, videoId, status, data = {}) {
-    this.winston.info('Publishing Event', {
-      action,
-      videoId,
-      status,
-      timestamp: new Date().toISOString(),
-      ...data
-    });
+    this.winston.info('Publishing Event', { action, videoId, status, timestamp: new Date().toISOString(), ...data });
   }
 
   logAnalytics(videoId, metrics, insights = []) {
-    this.winston.info('Analytics Update', {
-      videoId,
-      metrics,
-      insights,
-      timestamp: new Date().toISOString(),
-      ...data
-    });
+    this.winston.info('Analytics Update', { videoId, metrics, insights, timestamp: new Date().toISOString() });
   }
 
   logErrorWithContext(error, context = {}) {
     this.winston.error('System Error', {
-      error: {
-        message: error.message,
-        stack: error.stack,
-        name: error.name
-      },
+      error: { message: error.message, stack: error.stack, name: error.name },
       context,
       timestamp: new Date().toISOString()
     });
