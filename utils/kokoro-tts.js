@@ -4,7 +4,7 @@ const path = require('path');
 
 function runKokoro(text, outputPath, logger) {
   const inputPath = outputPath.replace(/\.[^.]+$/, '.txt');
-  const python = process.env.KOKORO_PYTHON || path.join(process.cwd(), 'kokoro-env', 'Scripts', 'python.exe');
+  const python = process.env.KOKORO_PYTHON || path.join(path.dirname(process.cwd()), 'kokoro-env', 'Scripts', 'python.exe');
   const script = path.join(__dirname, '..', 'scripts', 'kokoro_tts.py');
   const voice = process.env.KOKORO_VOICE || 'am_michael';
   const speed = process.env.KOKORO_SPEED || '1.0';
