@@ -20,25 +20,20 @@ class Logger {
       ),
       defaultMeta: { component: this.component },
       transports: [
-        // Write all logs to combined.log
         new winston.transports.File({ 
           filename: path.join(logDir, 'combined.log'),
-          maxsize: 5242880, // 5MB
+          maxsize: 5242880,
           maxFiles: 5,
         }),
-        
-        // Write error logs to error.log
         new winston.transports.File({ 
-          filename: path.join(logDir, 'error.log'), 
+          filename: path.join(logDir, 'error.log'),
           level: 'error',
-          maxsize: 5242880, // 5MB
+          maxsize: 5242880,
           maxFiles: 3,
         }),
-        
-        // Write agent-specific logs
         new winston.transports.File({
           filename: path.join(logDir, `${this.component.toLowerCase()}.log`),
-          maxsize: 2097152, // 2MB
+          maxsize: 2097152,
           maxFiles: 3,
         })
       ]
@@ -61,15 +56,14 @@ class Logger {
   }
 
   error(message, error = null, ...args) {
-    if (error) {
+    if (error instanceof Error) {
       this.winston.error(message, { error: error.message, stack: error.stack, ...args });
-    } else {
-      this.winston.error(message, ...args);
+      console.log(this.formatConsoleMessage('ERROR', `${message} ${error.message}`, chalk.red));
+      return;
     }
+
+    this.winston.error(message, ...args);
     console.log(this.formatConsoleMessage('ERROR', message, chalk.red));
-    if (error && process.env.NODE_ENV !== 'production') {
-      console.error(chalk.red(error.stack));
-    }
   }
 
   debug(message, ...args) {
@@ -83,11 +77,9 @@ class Logger {
     const timestamp = new Date().toLocaleTimeString();
     const componentTag = chalk.cyan(`[${this.component}]`);
     const levelTag = colorFunc(`[${level}]`);
-    
     return `${chalk.gray(timestamp)} ${componentTag} ${levelTag} ${message}`;
   }
 
-  // Method to create specialized loggers for different purposes
   static createAgentLogger(agentName) {
     return new Logger(agentName);
   }
@@ -100,7 +92,6 @@ class Logger {
     return new Logger('API');
   }
 
-  // Performance logging
   startTimer(label) {
     const startTime = Date.now();
     return {
@@ -112,7 +103,6 @@ class Logger {
     };
   }
 
-  // Structured logging for important events
   logEvent(eventType, data = {}) {
     this.winston.info('System Event', {
       eventType,
@@ -121,7 +111,6 @@ class Logger {
     });
   }
 
-  // Log content generation pipeline
   logContentPipeline(stage, contentId, status, data = {}) {
     this.winston.info('Content Pipeline', {
       stage,
@@ -132,7 +121,6 @@ class Logger {
     });
   }
 
-  // Log publishing events
   logPublishing(action, videoId, status, data = {}) {
     this.winston.info('Publishing Event', {
       action,
@@ -143,17 +131,16 @@ class Logger {
     });
   }
 
-  // Log analytics events
   logAnalytics(videoId, metrics, insights = []) {
     this.winston.info('Analytics Update', {
       videoId,
       metrics,
       insights,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      ...data
     });
   }
 
-  // Log errors with context
   logErrorWithContext(error, context = {}) {
     this.winston.error('System Error', {
       error: {
